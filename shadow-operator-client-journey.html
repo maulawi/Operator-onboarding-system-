@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shadow Operator — Client Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:  #060606;
+  --dark:   #0E0E0E;
+  --surf:   #141414;
+  --surf2:  #1a1a1a;
+  --gold:   #B8972E;
+  --gold-l: #D4AF5A;
+  --gold-d: rgba(184,151,46,0.15);
+  --gold-b: rgba(184,151,46,0.35);
+  --white:  #F5F0E8;
+  --muted:  #7A7060;
+  --muted2: #3a3530;
+  --cin: 'Cinzel', serif;
+  --cor: 'Cormorant Garamond', serif;
+  --int: 'Inter', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #030303;
+  font-family: var(--int);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+/* ── PROGRESS BAR ── */
+.progress-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 2px; background: var(--surf);
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--gold), var(--gold-l));
+  transition: width .4s ease;
+}
+
+/* ── SLIDE WRAPPER ── */
+.deck {
+  width: 100%; max-width: 900px;
+  padding: 24px 20px 100px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+
+/* ── SLIDE BASE ── */
+.slide {
+  width: 100%; background: var(--black);
+  border: 1px solid var(--gold-b);
+  position: relative; overflow: hidden;
+  display: none; flex-direction: column;
+  min-height: 520px;
+  animation: slideIn .3s ease;
+}
+.slide.active { display: flex; }
+@keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* Gold corner lines */
+.slide::before, .slide::after {
+  content: '';
+  position: absolute; top: 14px; bottom: 14px; width: 1px;
+  background: linear-gradient(to bottom, transparent 0%, var(--gold) 20%, var(--gold) 80%, transparent 100%);
+  z-index: 2;
+}
+.slide::before { left: 20px; }
+.slide::after  { right: 20px; }
+
+/* Top rule */
+.slide-rule {
+  width: calc(100% - 80px); margin: 20px auto 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+  flex-shrink: 0;
+}
+
+/* Bottom rule */
+.slide-rule-bottom {
+  width: calc(100% - 80px); margin: 0 auto 20px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold-b), transparent);
+  flex-shrink: 0; margin-top: auto;
+}
+
+/* Inner content area */
+.slide-inner {
+  flex: 1; padding: 28px 52px 24px;
+  display: flex; flex-direction: column;
+  position: relative; z-index: 1;
+}
+
+/* Brand mark */
+.brand-mark {
+  position: absolute; bottom: 24px; right: 44px;
+  font-family: var(--cin); font-size: 9px;
+  letter-spacing: .3em; color: var(--gold);
+  text-transform: uppercase; z-index: 3;
+}
+.slide-num {
+  position: absolute; bottom: 24px; left: 44px;
+  font-family: var(--cin); font-size: 9px;
+  letter-spacing: .15em; color: var(--muted);
+  z-index: 3;
+}
+
+/* ── TYPOGRAPHY ── */
+.eyebrow {
+  font-family: var(--cin); font-size: 9px; font-weight: 400;
+  letter-spacing: .3em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 14px;
+}
+.slide-heading {
+  font-family: var(--cin); font-size: clamp(22px,4vw,38px);
+  font-weight: 600; color: var(--gold);
+  letter-spacing: .08em; text-transform: uppercase;
+  line-height: 1.15; margin-bottom: 8px;
+}
+.slide-heading.white { color: var(--white); }
+.slide-heading span { color: var(--gold); }
+
+.gold-rule { display: flex; align-items: center; gap: 10px; margin: 10px 0 20px; }
+.gold-rule-line { flex: 1; height: 1px; background: var(--gold); }
+.gold-diamond { width: 7px; height: 7px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+
+.lead {
+  font-family: var(--cor); font-size: clamp(15px,2vw,18px);
+  color: var(--muted); line-height: 1.75; font-weight: 300;
+}
+.lead strong { color: var(--white); font-weight: 400; }
+
+/* ── COVER SLIDE ── */
+.cover-inner {
+  flex: 1; display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center; padding: 40px 52px;
+  position: relative; z-index: 1;
+}
+.cover-num {
+  font-family: var(--cin); font-size: clamp(100px,18vw,160px);
+  font-weight: 700; color: var(--surf2);
+  position: absolute; left: 50%; transform: translateX(-50%);
+  top: 50%; margin-top: -90px; letter-spacing: -.04em;
+  user-select: none; pointer-events: none; z-index: 0;
+  line-height: 1;
+}
+.cover-tag {
+  font-family: var(--cin); font-size: 9px; letter-spacing: .35em;
+  color: var(--gold); text-transform: uppercase; margin-bottom: 22px;
+}
+.cover-title {
+  font-family: var(--cin); font-size: clamp(26px,5vw,48px);
+  font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--white); line-height: 1.1; margin-bottom: 6px; position: relative;
+}
+.cover-title span { color: var(--gold); display: block; }
+.cover-sub {
+  font-family: var(--cor); font-size: clamp(14px,2vw,17px);
+  color: var(--muted); line-height: 1.7; font-style: italic;
+  max-width: 480px; margin: 0 auto; position: relative;
+}
+
+/* ── CALL CARD ── */
+.call-card {
+  background: var(--surf); border: 1px solid var(--gold-b);
+  margin-bottom: 14px;
+}
+.call-card-header {
+  display: grid; grid-template-columns: 72px 1fr;
+  border-bottom: 1px solid var(--gold-b);
+}
+.call-card-num {
+  background: var(--black); border-right: 1px solid var(--gold-b);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 14px 8px; text-align: center;
+}
+.ccn-label { font-family: var(--cin); font-size: 7px; letter-spacing: .2em; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+.ccn-num   { font-family: var(--cin); font-size: 28px; font-weight: 600; color: var(--gold); line-height: 1; }
+.ccn-time  { font-family: var(--int); font-size: 9px; color: var(--muted); margin-top: 5px; line-height: 1.3; text-align: center; }
+.call-card-title-area { padding: 14px 18px; }
+.call-card-name { font-family: var(--cin); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--white); margin-bottom: 4px; }
+.call-card-desc { font-family: var(--cor); font-size: 14px; color: var(--muted); line-height: 1.55; font-style: italic; }
+.call-card-body { padding: 16px 18px; }
+.agenda-item {
+  display: flex; gap: 10px; align-items: baseline;
+  font-family: var(--int); font-size: 12px; color: var(--muted);
+  padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  line-height: 1.5;
+}
+.agenda-item:last-child { border-bottom: none; }
+.agenda-item .dot { color: var(--gold); font-size: 9px; flex-shrink: 0; margin-top: 2px; }
+.agenda-item strong { color: var(--white); font-weight: 500; }
+.output-tag {
+  display: inline-block; margin-top: 12px;
+  font-family: var(--cin); font-size: 8px; letter-spacing: .15em;
+  text-transform: uppercase; padding: 4px 12px;
+  border: 1px solid var(--gold-b); color: var(--gold-l);
+}
+
+/* ── TIMELINE SLIDE ── */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.tl-row {
+  display: grid; grid-template-columns: 80px 28px 1fr;
+  align-items: stretch; gap: 0;
+}
+.tl-call {
+  font-family: var(--cin); font-size: 10px; letter-spacing: .1em;
+  color: var(--gold); text-transform: uppercase;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding-right: 14px; padding-top: 18px; padding-bottom: 18px;
+}
+.tl-axis { display: flex; flex-direction: column; align-items: center; }
+.tl-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 1.5px solid var(--gold); background: var(--black);
+  flex-shrink: 0; margin-top: 20px; z-index: 1;
+}
+.tl-dot.filled { background: var(--gold); }
+.tl-line { flex: 1; width: 1px; background: var(--gold-b); }
+.tl-row:last-child .tl-line { display: none; }
+.tl-content {
+  padding: 14px 0 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.tl-row:last-child .tl-content { border-bottom: none; }
+.tl-title { font-family: var(--cin); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--white); margin-bottom: 4px; }
+.tl-desc { font-family: var(--cor); font-size: 13px; color: var(--muted); line-height: 1.6; }
+.tl-gap {
+  grid-column: 2/4; padding: 6px 0 6px 16px;
+  font-family: var(--int); font-size: 10px;
+  color: var(--muted2); font-style: italic; letter-spacing: .04em;
+}
+
+/* ── TWO COL GRID ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.info-card {
+  background: var(--surf); border: 1px solid var(--gold-b); padding: 18px;
+}
+.ic-num { font-family: var(--cin); font-size: 22px; color: var(--gold); margin-bottom: 8px; }
+.ic-title { font-family: var(--cin); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--white); margin-bottom: 8px; }
+.ic-body { font-family: var(--cor); font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+/* ── ASSESSMENT SLIDE ── */
+.assess-list { display: flex; flex-direction: column; gap: 2px; }
+.assess-item {
+  display: grid; grid-template-columns: 28px 1fr;
+  background: var(--surf); border: 1px solid rgba(255,255,255,0.05);
+  padding: 12px 16px; gap: 12px; align-items: start;
+}
+.assess-icon { font-family: var(--cin); font-size: 12px; padding-top: 1px; }
+.assess-icon.yes { color: #6aad65; }
+.assess-icon.warn { color: var(--gold); }
+.assess-text { font-family: var(--cor); font-size: 14px; color: var(--white); line-height: 1.6; }
+.assess-text span { color: var(--muted); font-size: 13px; display: block; margin-top: 2px; }
+
+/* ── FINAL SLIDE ── */
+.final-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--gold-b); border: 1px solid var(--gold-b); margin-bottom: 20px; }
+.final-cell { background: var(--black); padding: 20px 16px; text-align: center; }
+.fc-icon { font-family: var(--cin); font-size: 18px; color: var(--gold); margin-bottom: 10px; }
+.fc-title { font-family: var(--cin); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--white); margin-bottom: 6px; }
+.fc-body { font-family: var(--cor); font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+/* ── NAV ── */
+.nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  background: var(--black); border-top: 1px solid var(--gold-b);
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; padding: 12px 24px;
+}
+.nav-btn {
+  background: transparent; border: 1px solid var(--gold-b);
+  color: var(--white); font-family: var(--cin); font-size: 9px;
+  letter-spacing: .2em; text-transform: uppercase;
+  padding: 10px 24px; cursor: pointer; transition: all .15s;
+}
+.nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+.nav-btn:disabled { opacity: .25; pointer-events: none; }
+.nav-dots { display: flex; gap: 6px; align-items: center; }
+.nav-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  border: 1px solid var(--gold-b); cursor: pointer;
+  transition: all .15s; background: transparent;
+}
+.nav-dot.active { background: var(--gold); border-color: var(--gold); transform: scale(1.2); }
+.nav-label {
+  font-family: var(--cin); font-size: 9px;
+  letter-spacing: .15em; color: var(--muted); min-width: 60px; text-align: center;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 600px) {
+  .slide-inner { padding: 20px 36px 20px; }
+  .slide::before { left: 14px; }
+  .slide::after  { right: 14px; }
+  .call-card-header { grid-template-columns: 60px 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+  .final-grid { grid-template-columns: 1fr; }
+  .tl-row { grid-template-columns: 60px 24px 1fr; }
+  .cover-inner { padding: 28px 36px; }
+  .brand-mark { right: 28px; font-size: 8px; }
+  .slide-num { left: 28px; font-size: 8px; }
+  .slide-rule { width: calc(100% - 52px); }
+  .slide-rule-bottom { width: calc(100% - 52px); }
+  .agenda-item { font-size: 11px; }
+  .nav { gap: 8px; padding: 10px 16px; }
+  .nav-btn { padding: 9px 16px; font-size: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+
+<div class="deck" id="deck">
+
+  <!-- ── SLIDE 1: COVER ── -->
+  <div class="slide active" data-label="Overview">
+    <div class="slide-rule"></div>
+    <div class="cover-inner">
+      <div class="cover-num" aria-hidden="true">SO</div>
+      <div class="cover-tag">Shadow Operator · Partnership Framework</div>
+      <div class="cover-title">
+        The Client Journey
+        <span>4-Call System</span>
+      </div>
+      <div class="gold-rule" style="justify-content:center;max-width:220px;margin:14px auto 18px">
+        <div class="gold-rule-line"></div>
+        <div class="gold-diamond"></div>
+        <div class="gold-rule-line"></div>
+      </div>
+      <div class="cover-sub">From first conversation to ongoing partnership — a structured system for onboarding, execution, and retention.</div>
+    </div>
+    <div class="slide-rule-bottom"></div>
+    <div class="brand-mark">Shadow Operator</div>
+    <div class="slide-num">01 / 07</div>
+  </div>
+
+  <!-- ── SLIDE 2: THE FRAMEWORK ── -->
+  <div class="slide" data-label="Framework">
+    <div class="slide-rule"></div>
+    <div class="slide-inner">
+      <div class="eyebrow">The System</div>
+      <div class="slide-heading">Four Calls.<br>One Complete Partnership.</div>
+      <div class="gold-rule"><div class="gold-rule-line"></div><div class="gold-diamond"></div><div class="gold-rule-line"></div></div>
+      <p class="lead" style="margin-bottom:24px">Every client engagement follows the same four-call structure. Not four random meetings — a deliberate sequence where each call builds on the last and moves the partnership forward.</p>
+
+      <div class="two-col">
+        <div class="info-card">
+          <div class="ic-num">01</div>
+          <div class="ic-title">Strategy Call</div>
+          <div class="ic-body">Day 1. Onboard the creator, walk through the system, sign the agreement, launch the market research.</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-num">02</div>
+          <div class="ic-title">Offer Design Call</div>
+          <div class="ic-body">Week 1–2. Data is in. Choose the right offer model and lock the build timeline.</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-num">03</div>
+          <div class="ic-title">Pre-Launch Call</div>
+          <div class="ic-body">Days before launch. Polish scripts, align on content sequence, confirm the launch plan.</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-num">04</div>
+          <div class="ic-title">Debrief Call</div>
+          <div class="ic-body">Post-launch. Review what worked, propose the next phase, convert the project into a partnership.</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-rule-bottom"></div>
+    <div class="brand-mark">Shadow Operator</div>
+    <div class="slide-num">02 / 07</div>
+  </div>
+
+  <!-- ── SLIDE 3: CALL 1 ── -->
+  <div class="slide" data-label="Call 1">
+    <div class="slide-rule"></div>
+    <div class="slide-inner">
+      <div class="eyebrow">Call 01 · Day 1</div>
+      <div class="slide-heading" style="font-size:clamp(18px,3.5vw,30px)">Strategy Call</div>
+      <div class="gold-rule"><div class="gold-rule-line"></div><div class="gold-diamond"></div><div class="gold-rule-line"></div></div>
+      <p class="lead" style="margin-bottom:20px">Set the foundation. Align on the system. Get commitment before execution starts.</p>
+      <div class="call-card">
+        <div class="call-card-body">
+          <div class="agenda-item"><span class="dot">◆</span><div>Walk through the <strong>4-phase monetisation system</strong> — no surprises later</div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Explain the <strong>lead magnet approach</strong> — why market data comes before offer design</div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Set up their <strong>Whop page</strong> together or assign as first action</div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Define <strong>both roles clearly</strong> — what you build, what they do</div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Sign the <strong>partnership agreement</strong></div></div>
+        </div>
+      </div>
+      <div class="output-tag">Output: signed agreement · lead magnet live · market research begins</div>
+    </div>
+    <div class="slide-rule-bottom"></div>
+    <div class="brand-mark">Shadow Operator</div>
+    <div class="slide-num">03 / 07</div>
+  </div>
+
+  <!-- ── SLIDE 4: CALL 2 ── -->
+  <div class="slide" data-label="Call 2">
+    <div class="slide-rule"></div>
+    <div class="slide-inner">
+      <div class="eyebrow">Call 02 · Week 1–2</div>
+      <div class="slide-heading" style="font-size:clamp(18px,3.5vw,30px)">Offer Design Call</div>
+      <div class="gold-rule"><div class="gold-rule-line"></div><div class="gold-diamond"></div><div class="gold-rule-line"></div></div>
+      <p class="lead" style="margin-bottom:20px">Data is in. Now you decide what gets built first — community or high-ticket — based on what the audience actually showed you.</p>
+      <div class="call-card">
+        <div class="call-card-body">
+          <div class="agenda-item"><span class="dot">◆</span><div>Present <strong>ICP findings</strong> from the lead magnet responses</div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Recommend <strong>community or high-ticket</strong> — explain the reasoning, not just the choice</div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Walk through the <strong>offer framework</strong> — structure, pricing, delivery model</div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Agree on <strong>product creation + launch timeline</strong> (~1 week build)</div></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+        <div style="width:1px;height:36px;background:var(--gold-b)"></div>
+        <p style="font-family:var(--cor);font-size:13px;color:var(--muted);font-style:italic;line-height:1.6">Prepare your ICP analysis <em style="color:var(--white)">before</em> this call — not during. The recommendation should be clear and confident, backed by data.</p>
+      </div>
+      <div class="output-tag">Output: offer direction locked · build timeline agreed</div>
+    </div>
+    <div class="slide-rule-bottom"></div>
+    <div class="brand-mark">Shadow Operator</div>
+    <div class="slide-num">04 / 07</div>
+  </div>
+
+  <!-- ── SLIDE 5: CALL 3 ── -->
+  <div class="slide" data-label="Call 3">
+    <div class="slide-rule"></div>
+    <div class="slide-inner">
+      <div class="eyebrow">Call 03 · Days Before Launch</div>
+      <div class="slide-heading" style="font-size:clamp(18px,3.5vw,30px)">Pre-Launch Call</div>
+      <div class="gold-rule"><div class="gold-rule-line"></div><div class="gold-diamond"></div><div class="gold-rule-line"></div></div>
+      <p class="lead" style="margin-bottom:20px">The system is built. This call makes sure the creator is ready — confident, clear, and aligned on every touchpoint before it goes live.</p>
+      <div class="call-card">
+        <div class="call-card-body">
+          <div class="agenda-item"><span class="dot">◆</span><div>Review and polish the <strong>marketing scripts and VSL</strong></div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Walk through the <strong>story and content sequence</strong> — what gets posted, when, why</div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Confirm <strong>launch timeline</strong> and each person's role during it</div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Handle any last-minute <strong>objections or adjustments</strong></div></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+        <div style="width:1px;height:36px;background:var(--gold-b)"></div>
+        <p style="font-family:var(--cor);font-size:13px;color:var(--muted);font-style:italic;line-height:1.6">Most operators skip this call. Having it sets you apart — creators go into launch with confidence instead of anxiety.</p>
+      </div>
+      <div class="output-tag">Output: creator confident · launch sequence approved · go live</div>
+    </div>
+    <div class="slide-rule-bottom"></div>
+    <div class="brand-mark">Shadow Operator</div>
+    <div class="slide-num">05 / 07</div>
+  </div>
+
+  <!-- ── SLIDE 6: CALL 4 ── -->
+  <div class="slide" data-label="Call 4">
+    <div class="slide-rule"></div>
+    <div class="slide-inner">
+      <div class="eyebrow">Call 04 · Post-Launch</div>
+      <div class="slide-heading" style="font-size:clamp(18px,3.5vw,30px)">Debrief Call</div>
+      <div class="gold-rule"><div class="gold-rule-line"></div><div class="gold-diamond"></div><div class="gold-rule-line"></div></div>
+      <p class="lead" style="margin-bottom:20px">The most important call for retention. This is where you show the operator mindset — honest, data-driven, already thinking about what comes next.</p>
+      <div class="call-card">
+        <div class="call-card-body">
+          <div class="agenda-item"><span class="dot">◆</span><div>Review <strong>what worked and what didn't</strong> — revenue, conversions, drop-offs</div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Identify <strong>offer improvements</strong> — pricing, positioning, delivery</div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Propose the <strong>next launch or evergreen system</strong></div></div>
+          <div class="agenda-item"><span class="dot">◆</span><div>Re-frame the relationship — from <strong>project to long-term partnership</strong></div></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+        <div style="width:1px;height:36px;background:var(--gold-b)"></div>
+        <p style="font-family:var(--cor);font-size:13px;color:var(--muted);font-style:italic;line-height:1.6">Always end this call with a <em style="color:var(--white)">clear next step proposed by you</em>. Don't wait for the creator to ask what's next.</p>
+      </div>
+      <div class="output-tag">Output: next phase scoped · retainer or repeat project agreed</div>
+    </div>
+    <div class="slide-rule-bottom"></div>
+    <div class="brand-mark">Shadow Operator</div>
+    <div class="slide-num">06 / 07</div>
+  </div>
+
+  <!-- ── SLIDE 7: KEY NOTES ── -->
+  <div class="slide" data-label="Key Notes">
+    <div class="slide-rule"></div>
+    <div class="slide-inner">
+      <div class="eyebrow">What Makes This Work</div>
+      <div class="slide-heading" style="font-size:clamp(18px,3.5vw,28px)">Key Notes on the System</div>
+      <div class="gold-rule"><div class="gold-rule-line"></div><div class="gold-diamond"></div><div class="gold-rule-line"></div></div>
+
+      <div class="assess-list">
+        <div class="assess-item">
+          <div class="assess-icon yes">✓</div>
+          <div class="assess-text">
+            Data before offer design is the right call
+            <span>Most operators skip the market research phase and build based on assumption. Your lead magnet approach is a genuine differentiator.</span>
+          </div>
+        </div>
+        <div class="assess-item">
+          <div class="assess-icon yes">✓</div>
+          <div class="assess-text">
+            Four calls is the right number
+            <span>Enough structure to feel professional without over-engineering the relationship. Each call has a clear purpose and output.</span>
+          </div>
+        </div>
+        <div class="assess-item">
+          <div class="assess-icon yes">✓</div>
+          <div class="assess-text">
+            The pre-launch call is your edge
+            <span>Most operators skip Call 3. Having it means creators go into launch confident — not anxious. That alone improves results.</span>
+          </div>
+        </div>
+        <div class="assess-item">
+          <div class="assess-icon warn">!</div>
+          <div class="assess-text">
+            Call 4 needs a retention pitch baked in
+            <span>Don't just debrief — always close with "here's what I recommend we do next." Leaving without a next step agreed risks losing the client.</span>
+          </div>
+        </div>
+        <div class="assess-item">
+          <div class="assess-icon warn">!</div>
+          <div class="assess-text">
+            The build week is your biggest retention risk
+            <span>Between Call 2 and Call 3, creators see nothing happening. Weekly updates in the app solve this — silence kills trust.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-rule-bottom"></div>
+    <div class="brand-mark">Shadow Operator</div>
+    <div class="slide-num">07 / 07</div>
+  </div>
+
+</div>
+
+<!-- ── NAVIGATION ── -->
+<nav class="nav" role="navigation" aria-label="Slide navigation">
+  <button class="nav-btn" id="btn-prev" onclick="go(-1)" disabled>← Prev</button>
+  <div class="nav-dots" id="nav-dots" role="tablist"></div>
+  <span class="nav-label" id="nav-label">Overview</span>
+  <button class="nav-btn" id="btn-next" onclick="go(1)">Next →</button>
+</nav>
+
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+const dotsContainer = document.getElementById('nav-dots');
+const label = document.getElementById('nav-label');
+const prog = document.getElementById('prog');
+let cur = 0;
+
+slides.forEach((s, i) => {
+  const d = document.createElement('button');
+  d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+  d.setAttribute('role', 'tab');
+  d.setAttribute('aria-label', 'Slide ' + (i+1));
+  d.onclick = () => goTo(i);
+  dotsContainer.appendChild(d);
+});
+
+function goTo(n) {
+  slides[cur].classList.remove('active');
+  dotsContainer.children[cur].classList.remove('active');
+  cur = Math.max(0, Math.min(n, slides.length - 1));
+  slides[cur].classList.add('active');
+  dotsContainer.children[cur].classList.add('active');
+  label.textContent = slides[cur].dataset.label || '';
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur === slides.length - 1;
+  prog.style.width = ((cur + 1) / slides.length * 100) + '%';
+  slides[cur].scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function go(dir) { goTo(cur + dir); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(-1);
+});
+
+// Touch swipe
+let tx = 0;
+document.addEventListener('touchstart', e => tx = e.changedTouches[0].clientX, {passive:true});
+document.addEventListener('touchend',   e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+}, {passive:true});
+
+goTo(0);
+</script>
+</body>
+</html>
